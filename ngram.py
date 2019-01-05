@@ -29,9 +29,9 @@ class Ngram:
         vocabs = sorted(list(set(flat_lines)))
 
         self.train_data = {
-            'lines'       : lines,
-            'n_tokens'    : n_tokens,
-            'vocabs'      : vocabs,
+            'lines'    : lines,
+            'n_tokens' : n_tokens,
+            'vocabs'   : vocabs,
         }
 
         if n >= 1:
