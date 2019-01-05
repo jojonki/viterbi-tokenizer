@@ -7,56 +7,46 @@ class Ngram:
         self.SOS = '<s>'
         self.EOS = '</s>'
 
-    def __load_data(self, fname):
+    def __load_data(self, fname, n):
         if not os.path.isfile(fname):
             print('{} does not exist!'.format(fname))
             return
 
         with open(fname, 'r') as f:
             lines = [[self.SOS] + l.strip().split(' ' ) + [self.EOS] for l in f.readlines()]
-            flat_lines = [w for l in lines for w in l]
-            n_tokens = len(flat_lines) - 2 * len(lines) # remove SOS and EOS counts
-            vocabs = sorted(list(set(flat_lines)))
-            unigram_freq = {w: flat_lines.count(w) for w in vocabs}
+            return lines
 
+        print('Failed to read file: {}'.format(fname))
+
+    def train(self, fname, n=2):
+        lines = self.__load_data(fname, n)
+        if lines is None:
+            print('You set an empty file', fname)
+            return
+
+        flat_lines = [w for l in lines for w in l]
+        n_tokens = len(flat_lines) - 2 * len(lines) # remove SOS and EOS counts
+        vocabs = sorted(list(set(flat_lines)))
+
+        self.train_data = {
+            'lines'       : lines,
+            'n_tokens'    : n_tokens,
+            'vocabs'      : vocabs,
+        }
+
+        if n >= 1:
+            unigram_freq = {w: flat_lines.count(w) for w in vocabs}
+            self.train_data['unigram_freq'] = unigram_freq
+
+        if n >= 2:
             bigrams = []
             for l in lines:
                 for i in range(0, len(l) - 1):
                    bigrams.append(' '.join(l[i:i+2]))
             uniq_bigrams = sorted(list(set(bigrams)))
             bigram_freq = {b: bigrams.count(b) for b in uniq_bigrams}
-
-            print('bigrams:', uniq_bigrams)
-            print('bigram freq:', bigram_freq)
-
-            return {
-                'lines'       : lines,
-                'n_tokens'    : n_tokens,
-                'vocabs'      : vocabs,
-                'uniq_bigrams': uniq_bigrams,
-                'unigram_freq': unigram_freq,
-                'bigram_freq' : bigram_freq
-            }
-
-        print('Failed to read file: {}'.format(fname))
-
-    def train(self, fname, n=2):
-        data = self.__load_data(fname)
-        if data is None:
-            return
-        self.train_data = data
-
-        vocabs = data['vocabs']
-        unigram_freq = data['unigram_freq']
-        bigram_freq = data['bigram_freq']
-        print('vocabs:', vocabs)
-        print('unigram_freq:', unigram_freq)
-
-        print('Training results:----------')
-        for big in bigram_freq.keys():
-            toks = big.split(' ')
-            p_w = bigram_freq[big] / unigram_freq[toks[0]]
-            print('P({})={}'.format(big, p_w))
+            self.train_data['uniq_bigrams'] = uniq_bigrams
+            self.train_data['bigram_freq'] = bigram_freq
 
     def dump(self, fname, n=2):
         lines = []
