@@ -47,6 +47,7 @@ def main():
             if len(words) == 0:
                 words = sent
             print('Tokenized:', words)
+            words += '\n'
             tokenized_results.append(' '.join(words))
 
     dump_file = args.dump_file
